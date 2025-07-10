@@ -1,4 +1,4 @@
-# UML-AI Evaluation
+# UML-ClassDiagram-AI-Generator
 
 Bachelorarbeit: Automatische Generierung von UML-Klassendiagrammen aus natürlichsprachlichen Anforderungen mit Hilfe von LLMs.
 
