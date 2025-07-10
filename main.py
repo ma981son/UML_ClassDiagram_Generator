@@ -2,6 +2,7 @@ from llm_clients import gpt4
 from dotenv import load_dotenv
 from pathlib import Path
 from datetime import datetime
+from plantuml_renderer import create_plantuml_image, extract_plantuml_code
 
 # Load .env
 load_dotenv()
@@ -30,7 +31,7 @@ def get_unique_filename(base_path: Path, base_name: str, suffix=".txt") -> Path:
         i += 1
 
 # Function to run the model with a given prompt and save the response
-def run_model(model: str, client_fn, temperature: float, prompt_file: Path, out_base:Path):
+def run_model(model: str, client_fn, temperature: float, prompt_file: Path):
     promt = prompt_file.read_text(encoding="utf-8")
     
     response = client_fn(model, promt, temperature)
@@ -42,7 +43,7 @@ def run_model(model: str, client_fn, temperature: float, prompt_file: Path, out_
     created_timestamp = datetime.fromtimestamp(response.created).strftime('%Y-%m-%d %H:%M:%S')
     
     temp_folder = f"temp-{str(temperature).replace('.', '_')}"
-    model_folder = out_base / model / temp_folder
+    model_folder = responses_dir / model / temp_folder
     model_folder.mkdir(parents=True,exist_ok=True)
     
     base_name = prompt_file.stem + "_RESPONSE"
@@ -61,6 +62,11 @@ def run_model(model: str, client_fn, temperature: float, prompt_file: Path, out_
     + "-" * 60 + "\n"
     f"# RESPONSE:\n{message}"
 )
+    
+    uml_code = extract_plantuml_code(message)
+    if uml_code:
+        image_output_path = results_dir / model / temp_folder / (out_path.stem + ".png")
+        create_plantuml_image(uml_code, image_output_path)
 
 for prompt_file in promt_dir.glob("*.txt"):
     for model in models:
@@ -69,7 +75,6 @@ for prompt_file in promt_dir.glob("*.txt"):
             client_fn=model["client_fn"],
             temperature=model["temperature"],
             prompt_file=prompt_file,
-            out_base=responses_dir
         )
 
 
